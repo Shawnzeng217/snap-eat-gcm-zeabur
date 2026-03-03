@@ -142,7 +142,7 @@ export const Profile: React.FC<ProfileProps> = ({
         setIsTranslating(true);
 
         try {
-            const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || "https://ai-gateway.eo-edgefunctions7.com/v1/chat/completions";
+            const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || "https://ai.juguang.chat/v1/chat/completions";
             const apiKey = import.meta.env.VITE_API_KEY || process.env.API_KEY || "";
 
             const response = await fetch(GATEWAY_URL, {

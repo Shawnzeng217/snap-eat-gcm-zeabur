@@ -28,6 +28,7 @@ const App: React.FC = () => {
   const [currentResults, setCurrentResults] = useState<Dish[]>([]);
   const [history, setHistory] = useState<Dish[]>([]); // All scanned items
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
+  const [totalScanCount, setTotalScanCount] = useState<number>(0);
 
   // Profile State
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -50,6 +51,7 @@ const App: React.FC = () => {
       else {
         setHistory([]);
         setSavedItems([]);
+        setTotalScanCount(0);
         setUserProfile(null);
         // Fix: Clear session-specific search results and inputs
         setCurrentResults([]);
@@ -132,6 +134,16 @@ const App: React.FC = () => {
         }));
         setSavedItems(saved);
       }
+
+      // 4. 获取总计扫描次数（用于 Profile 展示）
+      const { count: totalCount } = await supabase
+        .from('scans')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      if (totalCount !== null) {
+        setTotalScanCount(totalCount);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -198,6 +210,7 @@ const App: React.FC = () => {
           isMenu: s.is_menu
         }));
         setHistory(prev => [...formattedNew, ...prev]);
+        setTotalScanCount(prev => prev + results.length);
       }
     }
   };
@@ -238,6 +251,7 @@ const App: React.FC = () => {
 
       setHistory([]);
       setSavedItems([]);
+      setTotalScanCount(0);
       setUserProfile(null);
       // Fix: Clear session-specific search results and inputs
       setCurrentResults([]);
@@ -263,7 +277,7 @@ const App: React.FC = () => {
       setHistoryTab(tab);
       setCurrentScreen('history');
     },
-    scanCount: history.length,
+    scanCount: totalScanCount,
     savedCount: savedItems.length,
     onLogout: handleLogout,
     userProfile: userProfile,

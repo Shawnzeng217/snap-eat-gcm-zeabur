@@ -81,15 +81,25 @@ const App: React.FC = () => {
         // For now, Profile component reads from userProfile prop.
       }
 
-      // Fetch Scans
-      const { data: scans } = await supabase
+      // 1. 获取最近的历史记录（限制30条，防止大流量）
+      const { data: historyScans } = await supabase
         .from('scans')
         .select('*')
         .eq('user_id', userId)
+        .limit(30)
         .order('created_at', { ascending: false });
 
-      if (scans) {
-        const formattedScans: Dish[] = scans.map((s: any) => ({
+      // 2. 独立获取所有收藏记录（不设限，保证功能完整）
+      const { data: savedScans } = await supabase
+        .from('scans')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_saved', true)
+        .order('created_at', { ascending: false });
+
+      // 3. 将结果分配给不同的状态，互不干扰
+      if (historyScans) {
+        const formattedScans: Dish[] = historyScans.map((s: any) => ({
           id: s.id,
           name: s.name,
           originalName: s.original_name,
@@ -102,11 +112,11 @@ const App: React.FC = () => {
           boundingBox: s.bounding_box,
           isMenu: s.is_menu
         }));
-
         setHistory(formattedScans);
+      }
 
-        // Filter saved items
-        const saved = scans.filter((s: any) => s.is_saved).map((s: any) => ({
+      if (savedScans) {
+        const saved = savedScans.map((s: any) => ({
           id: s.id,
           name: s.name,
           originalName: s.original_name,
